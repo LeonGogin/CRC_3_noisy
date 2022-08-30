@@ -8,7 +8,7 @@ Since the noise data is labeled in the same way as the samples of interests, it 
 
 ### Epistemic uncertainty
 
-Using the method proposed in [Kwon et al., 2018] it is possible to estimate aleatoric and epistemic uncertainty. Aleatoric uncertainty capturing noise linked with the observations and epistemic uncertainty accounts for model uncertainty, so it may be used to evaluate the uncertainty on the prediction done by the model. Indeed due to implementing drop out in the evaluation phase, prediction probability $$\hat{p}_t = p(\omega_t) = SoftMax(f^{\hat{\omega}_t}(x*))$$ will be different in each evaluation experiment and effect of drop out may be seen as randomization of parameters of the model $\omega$ according to the variational predictive distribution $$q_{\hat{\theta}}(\omega)$$[Kwon et al., 2018]
+Using the method proposed in [Kwon et al., 2018] it is possible to estimate aleatoric and epistemic uncertainty. Aleatoric uncertainty capturing noise linked with the observations and epistemic uncertainty accounts for model uncertainty, so it may be used to evaluate the uncertainty on the prediction done by the model. Indeed due to implementing drop out in the evaluation phase, prediction probability will be different in each evaluation experiment and effect of drop out may be seen as randomization of parameters of the model according to the variational predictive distribution[Kwon et al., 2018]
 
 In ordder to calculate the epistemic uncertainty I used formula 4) from [Kwon et al., 2018]:
 
