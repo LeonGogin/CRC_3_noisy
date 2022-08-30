@@ -1,14 +1,14 @@
 # Uncertaincy estimation with drop out
 
-In real world application cases it is very difficult to have clean data set without noises, for this reason it is essential to have an approach that would be able to estimate the uncertainty of the classification. One of the solution may be considered Bayesian Convolutional Neural Networks that allow to find posterior distribution from which can be found uncertainty of the model parameters. However it is computationally intractable since require to perform integration over entire the space of parameters of the model[Kwon et al., 2018]. In the recient work by Yarin Gal et al. the solution of this problem have been proposed by developing a cansisten method that use the drop out to approximate the Bayesian inference[Gal, 2015].
+In real world application cases it is very difficult to have clean data set without noises, for this reason it is essential to have an approach that would be able to estimate the uncertainty of the classification. One of the solution of this problemm may be to considered Bayesian Convolutional Neural Networks that allow to find posterior distribution from which can be derive the uncertainty of the model parameters. However it is computationally intractable since require to perform integration over entire space of parameters of the model[Kwon et al., 2018]. In the recient work by Yarin Gal et al. have been developed a robust method that use the drop out to approximate the Bayesian inference[Gal, 2015].
 
 ## Uncertainty analisis
 
-Since the noise data is labeled in the same way as the samples of interests, it is required an approach to to deal with such miss classifications. One way may be to evaluate the uncertainty of all test sample and set a threshold that would cut off most of the noise samples.
+Since the noise data is labeled in the same way as the samples of interests, it is required an approach to to deal with such miss-classifications. In order to over come this problemm one could to evaluate the uncertainty of all test sample and set a threshold that would cut off most of the noise samples.
 
 ### Epistemic uncertainty
 
-Using the method proposed in [Kwon et al., 2018] it is possible to estimate aleatoric and epistemic uncertainty. Aleatoric uncertainty capturing noise inherent in the observations and epistemic uncertainty accounts for model uncertainty, so it may be used to evaluate the uncertainty on the prediction done by the model. Indeed due to implementing drop out in the evaluation phase prediction probability $\hat{p}_t = p(\omega_t) = SoftMax(f^{\hat{\omega}_t}(x*))$ will be different in each evaluation experiment and effect of drop out may be seen as randomization of parameters of the model $\omega$ according to the variational predictive distribution $q_{\hat{\theta}}(\omega)$[Kwon et al., 2018]
+Using the method proposed in [Kwon et al., 2018] it is possible to estimate aleatoric and epistemic uncertainty. Aleatoric uncertainty capturing noise linked with the observations and epistemic uncertainty accounts for model uncertainty, so it may be used to evaluate the uncertainty on the prediction done by the model. Indeed due to implementing drop out in the evaluation phase, prediction probability $$\hat{p}_t = p(\omega_t) = SoftMax(f^{\hat{\omega}_t}(x*))$$ will be different in each evaluation experiment and effect of drop out may be seen as randomization of parameters of the model $\omega$ according to the variational predictive distribution $$q_{\hat{\theta}}(\omega)$$[Kwon et al., 2018]
 
 In ordder to calculate the epistemic uncertainty I used formula 4) from [Kwon et al., 2018]:
 
@@ -22,13 +22,11 @@ $$
 
 ,where $f^{\hat{\omega}_t}(x*)$ is the output of the last dense layer.
 
-the implementation of calculus of epistemic uncertainty have been done in the function "get_epistemic_uncertainty", that have been adapted from the code proposed by [Kwon et al., 2018]. Using the mean prediction probability the samples are classified considering label with probability larger than 0.5 - unambiguous classification - the other samples are rejected.
+The implementation of calculus of epistemic uncertainty have been done in the function "get_epistemic_uncertainty", that have been adapted from the code proposed by [Kwon et al., 2018]. Using the mean prediction probability the samples are classified considering label with probability larger than 0.5 (unambiguous classification) the other samples are rejected.
 
-In order to find the distribution of the uncertainty over all samples I run the loop over entire test set and calculated it for each sample. After that I sorted unambiguously classified samples according to the real labels into corresponding arrays. In this way the noise analysis can be done more effectively and can be avoid the problem of false positive. from the other hand to estimate miss classification of the labels of interest (e.i. "AC", "AD", "H") I store classified labels into dictionary with corresponding real class as keys.
+In order to find the distribution of the uncertainty over all samples I run the loop over entire test set and calculated it for each sample. After that I sorted classified samples according to the real labels into corresponding arrays. In this way the noise analysis can be done more effectively and can be avoid the problem of false positive. From the other hand to estimate miss classification of the labels of interest (e.i. "AC", "AD", "H") I store classified labels into dictionary with corresponding real class as keys.
 
 ## Model
-
-<!-- Model is generated by a function "generate_model", that take as arguments the number of classes, input size, number of layers and dropout rate. Such method allows me to have better control over some initial set up of the model and architecture. So after several attempt I was able to find optimal configuration for the model. -->
 
 In order to implement Bayesian Convolutional Neural Network for multi class classification I implement the sequential model composed of 3 convolutional layers each of which is followed by max pooling and dropout layers. As final stage I added the flatten layer that prepare the input for dense layer followed again by drop out. At each new convolutional layer I double the number of filters - starting from 32 - and set the kernel dimension to (3,3), except the first one where I used kernel dimension (5,5). For each layer I used "same" padding and the relu-activation function, therfore I used he_normal-initializer for weight initialization. Instead for the last output dense layer I used softmax-activation function as have been suggested by [Kwon et al., 2018].
 Also I forced drop out layer to be active in training and test phase. The main role of the dropout is to randomly turn off some of the inputs to the layer. In this way in training phase it prevent oferfitting, indeed in this way neurons doesn't learn exactly the training data set. From other hand in test phase drop out allow some degree of uncertainty in evaluation and prediction of new samples that allow to approximate posterior distribution[Gal, 2015] and thus estimate variations.
@@ -37,9 +35,6 @@ I compile the model with categorical cross entropy as a loss function, Adam opti
 
 Finally I saved the model and history.
 
-### Set up and load data
-
-<!-- In order to load train and test data sets I have implement the function "load_data", that in place convert all labels in one hot encoding. In the case of train data set all data is splitted into train and validation subsets by sklearn function "train_test_split" in proportion 80/20. Also for convenience of noise analysis I convert data set of real class labels into a dictionary with string of real class as keys and as values the array of indexes of the corresponding data set vector. -->
 ### Performance
 
 As may be seen from plot below accuracy and the loss of the train and validation data set present the same behavior, except some fluctuation in validation accuracy and loss. Also both characteristics achieve almost stable and satisfactory values of accuracy and loss. In this way at first analysis the model learn well from training data set and avoid overfitting.
